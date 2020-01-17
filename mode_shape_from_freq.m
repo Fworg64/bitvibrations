@@ -1,3 +1,5 @@
+function mode_shape = mode_shape_from_freq(input_freq_hz, num_points, driving_force)
+
 % Solve total beam response using green's function for beam
 % Euler-bernoulli beam element
 
@@ -18,14 +20,14 @@ MU = p*A; % Mass per unit length
 ra = 0; % External damping
 ri = 0; % Internal damping
 
-FHZ = 0.2; % Hz Temporal frequncy of load
+FHZ = input_freq_hz; % Hz Temporal frequncy of load
 Om = FHZ * 2 * pi; % Temporal frequency (rad/s) of load
 
-dt_plot = .01; % s, how often to plot time soln
+%dt_plot = .01; % s, how often to plot time soln
 dx_plot = .01;% m, how often to plot space soln
 
-distplot = [0:dx_plot:L]; % Points of beam to plot
-timeplot = [0:dt_plot:10]; % Points in time to plot
+distplot = linspace(0,L,num_points); %[0:dx_plot:L]; % Points of beam to plot
+%timeplot = [0:dt_plot:10]; % Points in time to plot
 
 % Define beam parameter k
 k4 = (MU*Om^2 - 1i*ra*Om) / (EI + 1i*ri*Om);
@@ -40,7 +42,7 @@ phi1 =  0.5 * (cosh(k*x) + cos(k*x));
 phi2 =  0.5 * (sinh(k*x) + sin(k*x));
 phi3 =  0.5 * (cosh(k*x) - cos(k*x));
 phi4 =  0.5 * (sinh(k*x) - sin(k*x));
-U = 1.0*(x>0);
+U = heaviside(x);
 %plot(phi1(0:.01:1))
 
 % Calculate all IC's (from fixed-free conditions)
@@ -85,27 +87,27 @@ Gxltchi =   x0*phi1        + (xd0/k)*phi2...
 % integration from 0 to L of f(chi)G(x,chi) d chi
 % will just be the value of G at chi=L times the magnitude of f
 
-force_mag = 1000000;
+force_mag = driving_force;
 SpatialResponseMode = force_mag * subs(Gxltchi,chi,L);
-SpatialResponsePlot = double(subs(SpatialResponseMode,distplot));
-TimeComponent = exp(1i*Om*timeplot);
-TotalResponsePlot = real(TimeComponent.' * SpatialResponsePlot);
+mode_shape = double(subs(SpatialResponseMode,distplot));
+%TimeComponent = exp(1i*Om*timeplot);
+%TotalResponsePlot = real(TimeComponent.' * SpatialResponsePlot);
 
 % Plot displacement
-exaggeration = 1;
-figure();
-surf(distplot, timeplot, TotalResponsePlot)
-xlim([distplot(1), distplot(end)]);
-ylim([timeplot(1), timeplot(end)]);
-zlim([-distplot(end)/exaggeration, distplot(end)/exaggeration]);
-ylabel('Time')
-xlabel('Space')
+% exaggeration = 1;
+% figure();
+% surf(distplot, timeplot, TotalResponsePlot)
+% xlim([distplot(1), distplot(end)]);
+% ylim([timeplot(1), timeplot(end)]);
+% zlim([-distplot(end)/exaggeration, distplot(end)/exaggeration]);
+% ylabel('Time')
+% xlabel('Space')
 
 %ResponseIndef = int(G, chi);
 %Response = subs(ResponseIndef,chi,L) - subs(ResponseIndef, chi,0);
 
 
-
+end
 
 
 
